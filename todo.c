@@ -272,7 +272,62 @@ int main(int argc, char** argv){
             strcpy(confirmRemove,promptUser("%s", "Are you sure you want to remove this todo?"));
 
             if(checkInputTrue(confirmRemove)){
-                printf("Deleted todo.\n");
+                //TODO : Add logic to remove the todo at the given id index
+                
+                //If we only have 1 todo left in the pie, then we can't delete
+                if(numberOfTodos > 1){
+                    //Otherwise delete as normal
+                    todo* n = &head;
+                    int index = atoi(todoId);
+                    if(index == 0){ //Replace the head node values with the values in the second node.                    
+                        //Save a reference to the node after the head
+                        todo* nextNode = n->next;
+
+                        //Copy the values in the second node
+
+                        //Copy the name
+                        strcpy(n->name,nextNode->name); 
+
+                        //And the status
+                        n->done = nextNode->done;
+
+                        //Replace the head node next pointer to the third node.
+                        n->next = nextNode->next;
+
+                        //Free the memory for the nextNode
+                        free(nextNode);
+
+                    }else if(index == numberOfTodos - 1){ //Delete end of list
+
+                        //Iterate till we get to the one before last
+                        while(n->next->next != NULL) n = n->next;
+
+                        //Free it's next pointer's memory
+                        free(n->next);
+
+                        //Clear the last item by setting it's next pointer to NULL
+                        n->next = NULL; 
+                    }else{
+                        //Go to one before the desired node
+                        for(int i = 0; i < index - 1;i++) n = n->next;
+                        
+                        //Save the desired node reference
+                        todo* selectedNodeReference = n->next;
+
+                        //Jump over the node we want to remove
+                        n->next = selectedNodeReference->next;
+
+                        //Free the memory for the node we just jumped
+                        free(selectedNodeReference);
+                    }
+                    numberOfTodos--;
+                    printf("Deleted todo.\n");
+                }else{
+                    strcpy(head.name,"");
+                    head.next = NULL;
+                    head.done = false;
+                    printf("Cleared default todo.\n");
+                }
             }
 
         } else if(strcmp(trim(userInput),"up") == 0){ //If they want to update a todo
@@ -282,6 +337,14 @@ int main(int argc, char** argv){
             //Call the function to list all the todos
             listAllTodos();
         } else if(strcmp(trim(userInput),"exit") == 0){
+            //Delete our linked list memory to avoid memory leaks.
+            todo* nextTodo = &head; //Start off at the head
+            while(nextTodo->next != NULL){ //Iterate through all the todos
+                todo* thisTodo = nextTodo; //Save a refrence to the current todo
+                nextTodo = nextTodo->next; //Advance the next todo to the next one
+                free(thisTodo); //Free this todo's memory allocation
+            }
+
             keepLooping = false; //Break out of the loop
         }
 
