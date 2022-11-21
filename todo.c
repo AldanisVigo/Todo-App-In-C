@@ -278,7 +278,96 @@ int getExistingTodos(){
     //Close the file
     fclose(todosFile);
 
+    //Return the number of todos we read from the file
     return todoCount;
+}
+
+/*
+    Method asks the user to enter the id of the todo they would like to remove
+    then it confirms that the user want's to remove it and 
+    removes it from the linked list
+    The first todo is the default todo head, and that one is not deleted, it's just cleared.
+*/
+void removeTodo(int* numberOfTodos){
+    //Variable to store the user's input
+    char todoId[100];
+
+    //Prompt the user for a todo id
+    strcpy(todoId,promptUser("%s"," Enter the id of the todo you'd like to remove > "));
+
+    //Confirm that the user actually wants to delete the todo
+    char confirmRemove[100];
+
+    //Prompt the user for confirmation
+    strcpy(confirmRemove,promptUser("%s", "Are you sure you want to remove this todo?"));
+
+    if(checkInputTrue(confirmRemove)){
+        //TODO : Add logic to remove the todo at the given id index
+        
+        //If we only have 1 todo left in the pie, then we can't delete
+        if(*numberOfTodos > 1){
+            //Otherwise delete as normal
+            todo* n = &head;
+            int index = atoi(todoId);
+            if(index == 0){ //Replace the head node values with the values in the second node.                    
+                //Save a reference to the node after the head
+                todo* nextNode = n->next;
+
+                //Copy the name from the next node
+                strcpy(n->name,nextNode->name); 
+
+                //And the status from the next node
+                n->done = nextNode->done;
+
+                //Replace the head node next pointer to the third node.
+                n->next = nextNode->next;
+
+                //Free the memory for the nextNode
+                free(nextNode);
+
+            }else if(index == *numberOfTodos - 1){ //Delete end of list
+
+                //Iterate till we get to the one before last
+                while(n->next->next != NULL) n = n->next;
+
+                //Free it's next pointer's memory
+                free(n->next);
+
+                //Clear the last item by setting it's next pointer to NULL
+                n->next = NULL; 
+            }else{
+                //Go to one before the desired node
+                for(int i = 0; i < index - 1;i++) n = n->next;
+                
+                //Save the desired node reference
+                todo* selectedNodeReference = n->next;
+
+                //Jump over the node we want to remove
+                n->next = selectedNodeReference->next;
+
+                //Free the memory for the node we just jumped
+                free(selectedNodeReference);
+            }
+
+            //Decrement the number of todos
+            *numberOfTodos = *numberOfTodos - 1;
+
+            //Let the user know we deleted the todo
+            printf("Deleted todo.\n");
+        }else{
+            //Clear the head node's name
+            strcpy(head.name,"");
+
+            //Set the head's next node to NULL
+            head.next = NULL;
+
+            //Set the head node's done to false
+            head.done = false;
+
+            //Let the user know we cleared the default todo.
+            printf("Cleared default todo.\n");
+        }
+    }
 }
 
 /*
@@ -316,85 +405,11 @@ int main(int argc, char** argv){
             numberOfTodos++;
 
         } else if(strcmp(trim(userInput),"rem") == 0){ //If they want to remove a todo
-            //TODO: Add functionality to remove items from the linked list
             //List all the todos            
             listAllTodos();
-
-            //Variable to store the user's input
-            char todoId[100];
-
-            //Prompt the user for a todo id
-            strcpy(todoId,promptUser("%s"," Enter the id of the todo you'd like to remove > "));
-
-            //Confirm that the user actually wants to delete the todo
-            char confirmRemove[100];
-
-            //Prompt the user for confirmation
-            strcpy(confirmRemove,promptUser("%s", "Are you sure you want to remove this todo?"));
-
-            if(checkInputTrue(confirmRemove)){
-                //TODO : Add logic to remove the todo at the given id index
-                
-                //If we only have 1 todo left in the pie, then we can't delete
-                if(numberOfTodos > 1){
-                    //Otherwise delete as normal
-                    todo* n = &head;
-                    int index = atoi(todoId);
-                    if(index == 0){ //Replace the head node values with the values in the second node.                    
-                        //Save a reference to the node after the head
-                        todo* nextNode = n->next;
-
-                        //Copy the name from the next node
-                        strcpy(n->name,nextNode->name); 
-
-                        //And the status from the next node
-                        n->done = nextNode->done;
-
-                        //Replace the head node next pointer to the third node.
-                        n->next = nextNode->next;
-
-                        //Free the memory for the nextNode
-                        free(nextNode);
-
-                    }else if(index == numberOfTodos - 1){ //Delete end of list
-
-                        //Iterate till we get to the one before last
-                        while(n->next->next != NULL) n = n->next;
-
-                        //Free it's next pointer's memory
-                        free(n->next);
-
-                        //Clear the last item by setting it's next pointer to NULL
-                        n->next = NULL; 
-                    }else{
-                        //Go to one before the desired node
-                        for(int i = 0; i < index - 1;i++) n = n->next;
-                        
-                        //Save the desired node reference
-                        todo* selectedNodeReference = n->next;
-
-                        //Jump over the node we want to remove
-                        n->next = selectedNodeReference->next;
-
-                        //Free the memory for the node we just jumped
-                        free(selectedNodeReference);
-                    }
-                    numberOfTodos--;
-                    printf("Deleted todo.\n");
-                }else{
-                    //Clear the head node's name
-                    strcpy(head.name,"");
-
-                    //Set the head's next node to NULL
-                    head.next = NULL;
-
-                    //Set the head node's done to false
-                    head.done = false;
-
-                    //Let the user know we cleared the default todo.
-                    printf("Cleared default todo.\n");
-                }
-            }
+            
+            //Remove a todo
+            removeTodo(&numberOfTodos);
 
         } else if(strcmp(trim(userInput),"up") == 0){ //If they want to update a todo
             //TODO: Add functionality to update an intem in the linked list
@@ -409,32 +424,62 @@ int main(int argc, char** argv){
             //Create a reference to the head of the todos list
             todo* n = &head;
 
-            
-            while(n != NULL){ //Iterate through the list until we hit an empty node
-                char newFileLine[200] = ""; //Create a character array to store the next line to save to the todos file
-                strcat(newFileLine,n->name); //Concatenate in the name
-                strcat(newFileLine,","); //Add a comma
-                strcat(newFileLine,n->done ? "true" : "false"); //Add the status
-                if(n->next != NULL){ //All lines except for the last
-                    strcat(newFileLine,"\n"); //Advance to the next line
+            //Iterate through the list until we hit an empty node
+            while(n != NULL){
+                //Create a character array to store the next line to save to the todos file
+                char newFileLine[200] = ""; 
+
+                //Concatenate in the name
+                strcat(newFileLine,n->name);
+                
+                //Add a comma 
+                strcat(newFileLine,",");
+
+                //Add the status
+                strcat(newFileLine,n->done ? "true" : "false"); 
+
+                //And for all lines except the last line
+                if(n->next != NULL){ 
+                    //Advance to the next line by concatenating a newline character
+                    strcat(newFileLine,"\n"); 
                 }
-                fputs(newFileLine,todosFile); //Save the line to the file
+                
+                //Save the line to the file
+                fputs(newFileLine,todosFile); 
+
+                //Advance the node to the next node
                 n = n->next;
             }
 
             //Close the file
             fclose(todosFile);
 
-
             //Delete our linked list memory to avoid memory leaks.
             todo* nextTodo = &head; //Start off at the head
-            while(nextTodo->next != NULL){ //Iterate through all the todos
-                todo* thisTodo = nextTodo; //Save a refrence to the current todo
-                nextTodo = nextTodo->next; //Advance the next todo to the next one
-                // free(thisTodo); //Free this todo's memory allocation
+            int todoIndex = 0; //Start at the head
+
+            //Iterate through all the todos in the linked list
+            while(nextTodo != NULL){
+                //Save a refrence to the next todo
+                todo* nextTodoRef = nextTodo->next; 
+
+                //Free the memory for all todos except the head
+                if(todoIndex != 0) free(nextTodo);
+
+                //Increment the todo index
+                todoIndex++; 
+
+                //Advance the next todo to the next one
+                nextTodo = nextTodoRef; 
             }
 
-            keepLooping = false; //Break out of the loop
+            //Clear the head pointers data so we don't leak
+            strcpy(head.name,"");
+            head.done = false;
+            head.next = NULL;
+
+            //Break out of the loop
+            keepLooping = false; 
         }
 
         //Clear the user input string
