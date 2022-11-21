@@ -10,6 +10,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <stdlib.h>
+#include <fcntl.h>
 
 typedef struct todo_t todo;
 
@@ -224,11 +225,67 @@ void addTodo(int numberOfTodos){
 }
 
 /*
+    Method to retrieve the contents of the todos.txt file and reconstruct the linked list
+*/
+int getExistingTodos(){
+    int todoCount = 0;
+
+    FILE* todosFile = fopen("todos.txt","r");
+    if(todosFile != NULL){ //if file exists
+        while(!feof(todosFile)){ //Go through it until we hit the end of the file
+
+            //Array to store the next line
+            char nextFileLine[200];
+
+            //Get the next line
+            fgets(nextFileLine,200,todosFile);
+            
+            //Create a new todo
+            todo* newTodoFromFile; //Create a new todo
+
+            //Allocate some memory for the new todo
+            newTodoFromFile = (todo*)malloc(sizeof(todo*));
+
+            //Get the token before the first "," in the line
+            char* token = strtok(nextFileLine,",");
+            
+            int tokenIndex = 0; //Start with the 0th token 
+            while(token != NULL){ //While the token is not NULL
+                if(tokenIndex == 0){ //If we're on the 0th token
+                    printf("0 : %s",token);
+                    strcpy(newTodoFromFile->name,token); //Copy the token to the new todo's name
+                }else if(tokenIndex == 1){ //if we're on the 1st token
+                    printf("1: %s",token);
+                    if(strcmp(trim(token),"true") == 0){ //Compare the token with the string "true"
+                        newTodoFromFile->done = true; //If it matches set the new todo's done bool to true
+                    }else if(strcmp(trim(token),"false") == 0){ //Otherwise if it matches with the string "false"
+                        newTodoFromFile->done = false; //Set the new todo's done bool to false
+                    }
+                }
+                tokenIndex++; //Go to the next token index
+                token = strtok(NULL,","); //Advance the token to the next comma.
+            }
+            
+            //Save the todo to the linked list
+            saveTodo(todoCount,newTodoFromFile,newTodoFromFile->name,newTodoFromFile->done);
+        
+            todoCount++;
+        }
+    }
+    fclose(todosFile);
+
+    return todoCount;
+}
+
+/*
     Main entry point of the TODO application
 */
 int main(int argc, char** argv){
     //Integer to keep track of how many todos we have
     int numberOfTodos = 0;
+
+    //Read the contents of the todos.txt file and reconstruct the linked list
+    numberOfTodos = getExistingTodos();
 
     //Print the header of the program
     printHeader();
@@ -283,12 +340,10 @@ int main(int argc, char** argv){
                         //Save a reference to the node after the head
                         todo* nextNode = n->next;
 
-                        //Copy the values in the second node
-
-                        //Copy the name
+                        //Copy the name from the next node
                         strcpy(n->name,nextNode->name); 
 
-                        //And the status
+                        //And the status from the next node
                         n->done = nextNode->done;
 
                         //Replace the head node next pointer to the third node.
@@ -323,9 +378,16 @@ int main(int argc, char** argv){
                     numberOfTodos--;
                     printf("Deleted todo.\n");
                 }else{
+                    //Clear the head node's name
                     strcpy(head.name,"");
+
+                    //Set the head's next node to NULL
                     head.next = NULL;
+
+                    //Set the head node's done to false
                     head.done = false;
+
+                    //Let the user know we cleared the default todo.
                     printf("Cleared default todo.\n");
                 }
             }
@@ -337,12 +399,35 @@ int main(int argc, char** argv){
             //Call the function to list all the todos
             listAllTodos();
         } else if(strcmp(trim(userInput),"exit") == 0){
+            //Save the contents of our linked list to a file for persistence
+            FILE* todosFile = fopen("todos.txt","w");
+            
+            //Create a reference to the head of the todos list
+            todo* n = &head;
+
+            
+            while(n != NULL){ //Iterate through the list until we hit an empty node
+                char newFileLine[200] = ""; //Create a character array to store the next line to save to the todos file
+                strcat(newFileLine,n->name); //Concatenate in the name
+                strcat(newFileLine,","); //Add a comma
+                strcat(newFileLine,n->done ? "true" : "false"); //Add the status
+                if(n->next != NULL){ //All lines except for the last
+                    strcat(newFileLine,"\n"); //Advance to the next line
+                }
+                fputs(newFileLine,todosFile); //Save the line to the file
+                n = n->next;
+            }
+
+            //Close the file
+            fclose(todosFile);
+
+
             //Delete our linked list memory to avoid memory leaks.
             todo* nextTodo = &head; //Start off at the head
             while(nextTodo->next != NULL){ //Iterate through all the todos
                 todo* thisTodo = nextTodo; //Save a refrence to the current todo
                 nextTodo = nextTodo->next; //Advance the next todo to the next one
-                free(thisTodo); //Free this todo's memory allocation
+                // free(thisTodo); //Free this todo's memory allocation
             }
 
             keepLooping = false; //Break out of the loop
