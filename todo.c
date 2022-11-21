@@ -117,16 +117,16 @@ bool checkInputTrue(char* input){
     Method to list all the todos in the linked list starting at the head
 */
 void listAllTodos(){
-    printf("=========================================\n");
-    printf("============= LIST OF TODOS =============\n");
-    printf("=========================================\n");
-
+    printf("===================================================================\n");
+    printf("============================= LIST OF TODOS =======================\n");
+    printf("===================================================================\n");
+    printf("%-15s%-30s%-20s\n","TODO_ID","CONTENT","STATUS");
     //Start at the head
     todo* nextTodo = &head;
-
+    int todoId = 0;
     //Do this bit
     do{
-        printf("TODO: %-30s%-20s\n",nextTodo->name,nextTodo->done ? "DONE" : "NOT DONE");
+        printf("%-15d%-30s%-20s\n",todoId++,nextTodo->name,nextTodo->done ? "DONE" : "NOT DONE");
         nextTodo = nextTodo->next;
     }while(nextTodo != NULL); //Till the next node in the list is empty
 }
@@ -137,9 +137,9 @@ void listAllTodos(){
 void printHeader(){
     //Print the header of the TODO app
     printf("\n");
-    printf("========================================================\n");
-    printf("======================= TODO APP =======================\n");
-    printf("========================================================\n");
+    printf("===================================================================\n");
+    printf("============================== TODO APP ===========================\n");
+    printf("===================================================================\n");
     printf("\n");
 }
 
@@ -256,7 +256,25 @@ int main(int argc, char** argv){
 
         } else if(strcmp(trim(userInput),"rem") == 0){ //If they want to remove a todo
             //TODO: Add functionality to remove items from the linked list
-            printf("You want to remove an item from the list\n");
+            //List all the todos            
+            listAllTodos();
+
+            //Variable to store the user's input
+            char todoId[100];
+
+            //Prompt the user for a todo id
+            strcpy(todoId,promptUser("%s"," Enter the id of the todo you'd like to remove > "));
+
+            //Confirm that the user actually wants to delete the todo
+            char confirmRemove[100];
+
+            //Prompt the user for confirmation
+            strcpy(confirmRemove,promptUser("%s", "Are you sure you want to remove this todo?"));
+
+            if(checkInputTrue(confirmRemove)){
+                printf("Deleted todo.\n");
+            }
+
         } else if(strcmp(trim(userInput),"up") == 0){ //If they want to update a todo
             //TODO: Add functionality to update an intem in the linked list
             printf("You want to update an item from the list\n");
