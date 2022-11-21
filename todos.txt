@@ -1,3 +1,0 @@
-Second todo,true
-Third todo,false
-New Todo,true

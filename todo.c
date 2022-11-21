@@ -225,12 +225,15 @@ void addTodo(int numberOfTodos){
 }
 
 /*
-    Method to retrieve the contents of the todos.txt file and reconstruct the linked list
+    Method to retrieve the contents of the todos.vigo file and reconstruct the linked list
 */
 int getExistingTodos(){
+    //Counter for the number of todos available
     int todoCount = 0;
 
-    FILE* todosFile = fopen("todos.txt","r");
+    //Get a pointer to the todos.vigo file
+    FILE* todosFile = fopen("todos.vigo","r");
+
     if(todosFile != NULL){ //if file exists
         while(!feof(todosFile)){ //Go through it until we hit the end of the file
 
@@ -252,10 +255,8 @@ int getExistingTodos(){
             int tokenIndex = 0; //Start with the 0th token 
             while(token != NULL){ //While the token is not NULL
                 if(tokenIndex == 0){ //If we're on the 0th token
-                    printf("0 : %s",token);
                     strcpy(newTodoFromFile->name,token); //Copy the token to the new todo's name
                 }else if(tokenIndex == 1){ //if we're on the 1st token
-                    printf("1: %s",token);
                     if(strcmp(trim(token),"true") == 0){ //Compare the token with the string "true"
                         newTodoFromFile->done = true; //If it matches set the new todo's done bool to true
                     }else if(strcmp(trim(token),"false") == 0){ //Otherwise if it matches with the string "false"
@@ -268,10 +269,13 @@ int getExistingTodos(){
             
             //Save the todo to the linked list
             saveTodo(todoCount,newTodoFromFile,newTodoFromFile->name,newTodoFromFile->done);
-        
+
+            //Increment the number of available todos.
             todoCount++;
         }
     }
+
+    //Close the file
     fclose(todosFile);
 
     return todoCount;
@@ -284,7 +288,7 @@ int main(int argc, char** argv){
     //Integer to keep track of how many todos we have
     int numberOfTodos = 0;
 
-    //Read the contents of the todos.txt file and reconstruct the linked list
+    //Read the contents of the todos.vigo file and reconstruct the linked list
     numberOfTodos = getExistingTodos();
 
     //Print the header of the program
@@ -400,7 +404,7 @@ int main(int argc, char** argv){
             listAllTodos();
         } else if(strcmp(trim(userInput),"exit") == 0){
             //Save the contents of our linked list to a file for persistence
-            FILE* todosFile = fopen("todos.txt","w");
+            FILE* todosFile = fopen("todos.vigo","w");
             
             //Create a reference to the head of the todos list
             todo* n = &head;
