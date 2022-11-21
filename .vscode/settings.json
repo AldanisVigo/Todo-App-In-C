@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "*.dart": "dart",
+        "__locale": "c",
+        "cstring": "c"
+    }
+}
