@@ -371,6 +371,47 @@ void removeTodo(int* numberOfTodos){
 }
 
 /*
+    Method saves the linked list to a file for persistence
+*/
+void saveTodosPersistenceFile(){
+    //Save the contents of our linked list to a file for persistence
+    FILE* todosFile = fopen("todos.vigo","w");
+    
+    //Create a reference to the head of the todos list
+    todo* n = &head;
+
+    //Iterate through the list until we hit an empty node
+    while(n != NULL){
+        //Create a character array to store the next line to save to the todos file
+        char newFileLine[200] = ""; 
+
+        //Concatenate in the name
+        strcat(newFileLine,n->name);
+        
+        //Add a comma 
+        strcat(newFileLine,",");
+
+        //Add the status
+        strcat(newFileLine,n->done ? "true" : "false"); 
+
+        //And for all lines except the last line
+        if(n->next != NULL){ 
+            //Advance to the next line by concatenating a newline character
+            strcat(newFileLine,"\n"); 
+        }
+        
+        //Save the line to the file
+        fputs(newFileLine,todosFile); 
+
+        //Advance the node to the next node
+        n = n->next;
+    }
+
+    //Close the file
+    fclose(todosFile);
+}
+
+/*
     Main entry point of the TODO application
 */
 int main(int argc, char** argv){
@@ -418,41 +459,7 @@ int main(int argc, char** argv){
             //Call the function to list all the todos
             listAllTodos();
         } else if(strcmp(trim(userInput),"exit") == 0){
-            //Save the contents of our linked list to a file for persistence
-            FILE* todosFile = fopen("todos.vigo","w");
-            
-            //Create a reference to the head of the todos list
-            todo* n = &head;
-
-            //Iterate through the list until we hit an empty node
-            while(n != NULL){
-                //Create a character array to store the next line to save to the todos file
-                char newFileLine[200] = ""; 
-
-                //Concatenate in the name
-                strcat(newFileLine,n->name);
-                
-                //Add a comma 
-                strcat(newFileLine,",");
-
-                //Add the status
-                strcat(newFileLine,n->done ? "true" : "false"); 
-
-                //And for all lines except the last line
-                if(n->next != NULL){ 
-                    //Advance to the next line by concatenating a newline character
-                    strcat(newFileLine,"\n"); 
-                }
-                
-                //Save the line to the file
-                fputs(newFileLine,todosFile); 
-
-                //Advance the node to the next node
-                n = n->next;
-            }
-
-            //Close the file
-            fclose(todosFile);
+            saveTodosPersistenceFile();
 
             //Delete our linked list memory to avoid memory leaks.
             todo* nextTodo = &head; //Start off at the head
